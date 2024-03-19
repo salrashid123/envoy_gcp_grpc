@@ -113,14 +113,13 @@ func (s *server) Process(srv pb.ExternalProcessor_ProcessServer) error {
 						if err == io.EOF {
 							break
 						}
-						log.Fatalf("could not Decode  %v", err)
-						return err
+						return status.Errorf(codes.Internal, "error decoding: %v", err)
 					}
 
 					serialized := &pubsubpb.PublishRequest{}
 					err = proto.Unmarshal(reqMessageBytes, serialized)
 					if err != nil {
-						log.Fatal("unmarshaling error: ", err)
+						return status.Errorf(codes.InvalidArgument, "unmarshaling error: %v", err)
 					}
 					log.Printf(">>>>>>>>>>>>>>>> Got message for topic: %s\n", serialized.Topic)
 
