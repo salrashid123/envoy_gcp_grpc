@@ -19,7 +19,7 @@ import (
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	"github.com/psanford/lencode"
 
-	"google.golang.org/genproto/googleapis/pubsub/v1"
+	pubsubpb "cloud.google.com/go/pubsub/apiv1/pubsubpb"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -72,9 +72,10 @@ func (s *server) Process(srv pb.ExternalProcessor_ProcessServer) error {
 			log.Printf("Got RequestHeaders.Headers %v", h.RequestHeaders.Headers)
 
 			for _, n := range h.RequestHeaders.Headers.Headers {
-				if n.Key == ":path" && n.Value == "/google.pubsub.v1.Publisher/Publish" {
+				// n.Value empty so using n.RawValue
+				if n.Key == ":path" && fmt.Sprintf("%s", n.RawValue) == "/google.pubsub.v1.Publisher/Publish" {
 					for _, n := range h.RequestHeaders.Headers.Headers {
-						log.Printf("Header %s %s", n.Key, n.Value)
+						log.Printf("Header %s %s", n.Key, n.RawValue)
 
 						rhq := &pb.HeadersResponse{
 							Response: &pb.CommonResponse{},
@@ -116,7 +117,7 @@ func (s *server) Process(srv pb.ExternalProcessor_ProcessServer) error {
 						return err
 					}
 
-					serialized := &pubsub.PublishRequest{}
+					serialized := &pubsubpb.PublishRequest{}
 					err = proto.Unmarshal(reqMessageBytes, serialized)
 					if err != nil {
 						log.Fatal("unmarshaling error: ", err)

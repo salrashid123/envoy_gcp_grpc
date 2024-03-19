@@ -33,7 +33,8 @@ go run filter.go
 
 Run envoy
 ```bash
-docker cp `docker create envoyproxy/envoy-dev:latest`:/usr/local/bin/envoy /tmp/
+docker cp `docker create envoyproxy/envoy:v1.29.2`:/usr/local/bin/envoy /tmp/
+
 /tmp/envoy -c envoy_server.yaml -l debug
 ```
 
