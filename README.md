@@ -9,6 +9,8 @@ Basically, another variation of these article
 
 ![images/pubsub_ext_proxy.png](images/pubsub_ext_proxy.png)
 
+Note, if you have the proto descriptors handy and just want to decode envoy metadata, see [Using envoy.filters.http.grpc_field_extraction](https://github.com/salrashid123/envoy_grpc_decode?tab=readme-ov-file#using-envoyfiltershttpgrpc_field_extraction)
+
 
 At the moment, the proxy just decodes the messages and sends the original message as-is upstream to gcp.
 
