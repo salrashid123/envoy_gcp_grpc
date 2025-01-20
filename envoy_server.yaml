@@ -56,6 +56,28 @@ static_resources:
                   envoy.filters.http.dynamic_forward_proxy:
                     '@type': type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.PerRouteConfig
           http_filters:   
+
+          - name: envoy.filters.http.proto_message_extraction
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.proto_message_extraction.v3.ProtoMessageExtractionConfig
+              data_source: 
+                filename: "./descriptors/pubsub.proto.pb"
+              extraction_by_method:
+                google.pubsub.v1.Publisher.Publish:
+                  request_extraction_by_field:
+                    topic: "EXTRACT"
+
+          - name: envoy.filters.http.grpc_field_extraction
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_field_extraction.v3.GrpcFieldExtractionConfig
+              descriptor_set: 
+                filename: "./descriptors/pubsub.proto.pb"
+              extractions_by_method:
+                google.pubsub.v1.Publisher.Publish:
+                  request_field_extractions:
+                    topic: {}
+
+
           - name: envoy.filters.http.ext_proc
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
@@ -91,7 +113,7 @@ static_resources:
             name: local_route
             virtual_hosts:
             - name: local_service
-              domains: ["envoy.yourdomain.com"]
+              domains: ["envoy.domain.com"]
               routes:
               - match:
                   prefix: "/healthz"
@@ -164,4 +186,4 @@ static_resources:
             match_subject_alt_names:
               exact: "server.domain.com"
             trusted_ca:
-              filename: "certs/tls-ca-chain.crt"          
+              filename: "certs/root-ca.crt"          

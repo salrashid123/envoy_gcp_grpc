@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"cloud.google.com/go/pubsub"
@@ -18,7 +18,7 @@ import (
 const ()
 
 var (
-	projectID = flag.String("projectID", "fabled-ray-104117", "projectID")
+	projectID = flag.String("projectID", "core-eso", "projectID")
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
-	pemServerCA, err := ioutil.ReadFile("../certs/tls-ca-chain.pem")
+	pemServerCA, err := os.ReadFile("../certs/root-ca.crt")
 	if err != nil {
 		panic(err)
 	}

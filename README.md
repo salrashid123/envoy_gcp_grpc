@@ -2,6 +2,14 @@
 
 Just an envoy proxy that decodes and prints google pubsub messages.
 
+This configuration will use three mechanisms to parse the inbound grpc message:
+
+1. `envoy.filters.http.proto_message_extraction`
+2. `envoy.filters.http.grpc_field_extraction`
+3. `envoy.filters.http.ext_proc`
+
+The first two cannot all message types but the third done can.
+
 Basically, another variation of these article
 
 - [Decoding gRPC Messages using Envoy](https://blog.salrashid.dev/articles/2022/envoy_grpc_decode/)
@@ -62,27 +70,26 @@ Published message msg ID: 6016065317030900
 
 ```log
 $ go run filter.go 
-2022/10/21 17:00:36 Starting server...
-2022/10/21 17:00:38 Handling grpc Check request + service:"envoy.service.ext_proc.v3.ExternalProcessor"
-2022/10/21 17:00:40 Got stream:  -->  
-2022/10/21 17:00:40 pb.ProcessingRequest_RequestHeaders &{headers:{headers:{key:":method"  value:"POST"}  headers:{key:":scheme"  value:"https"}  headers:{key:":path"  value:"/google.pubsub.v1.Publisher/Publish"}  headers:{key:":authority"  value:"pubsub.googleapis.com"}  headers:{key:"content-type"  value:"application/grpc"}  headers:{key:"user-agent"  value:"grpc-go/1.48.0"}  headers:{key:"te"  value:"trailers"}  headers:{key:"grpc-timeout"  value:"59870023u"}  headers:{key:"authorization"  value:"Bearer ya29.redacted"}  headers:{key:"grpc-tags-bin"  value:"AAAGc3RhdHVzAk9LAAV0b3BpYyhwcm9qZWN0cy9mYWJsZWQtcmF5LTEwNDExNy90b3BpY3MvdG9waWMx"}  headers:{key:"x-goog-api-client"  value:"gl-go/1.19.0 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0"}  headers:{key:"x-goog-request-params"  value:"topic=projects%2Ffabled-ray-104117%2Ftopics%2Ftopic1"}  headers:{key:"grpc-trace-bin"  value:"AADYLLj/P24k5IPyxF69BSUsAYk6sKAoqXpiAgA"}  headers:{key:"x-forwarded-proto"  value:"https"}  headers:{key:"x-request-id"  value:"778b7a17-772d-42c9-96e8-e2b85d9dd325"}}} 
-2022/10/21 17:00:40 Got RequestHeaders.Attributes map[]
-2022/10/21 17:00:40 Got RequestHeaders.Headers headers:{key:":method"  value:"POST"}  headers:{key:":scheme"  value:"https"}  headers:{key:":path"  value:"/google.pubsub.v1.Publisher/Publish"}  headers:{key:":authority"  value:"pubsub.googleapis.com"}  headers:{key:"content-type"  value:"application/grpc"}  headers:{key:"user-agent"  value:"grpc-go/1.48.0"}  headers:{key:"te"  value:"trailers"}  headers:{key:"grpc-timeout"  value:"59870023u"}  headers:{key:"authorization"  value:"Bearer ya29.redacted"}  headers:{key:"grpc-tags-bin"  value:"AAAGc3RhdHVzAk9LAAV0b3BpYyhwcm9qZWN0cy9mYWJsZWQtcmF5LTEwNDExNy90b3BpY3MvdG9waWMx"}  headers:{key:"x-goog-api-client"  value:"gl-go/1.19.0 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0"}  headers:{key:"x-goog-request-params"  value:"topic=projects%2Ffabled-ray-104117%2Ftopics%2Ftopic1"}  headers:{key:"grpc-trace-bin"  value:"AADYLLj/P24k5IPyxF69BSUsAYk6sKAoqXpiAgA"}  headers:{key:"x-forwarded-proto"  value:"https"}  headers:{key:"x-request-id"  value:"778b7a17-772d-42c9-96e8-e2b85d9dd325"}
-2022/10/21 17:00:40 Header :method POST
-2022/10/21 17:00:40    RequestBody: J
-(projects/fabled-ray-104117/topics/topic1
+2025/01/18 09:57:02 Starting server...
+2025/01/18 09:57:21 Handling grpc Check request + service:"envoy.service.ext_proc.v3.ExternalProcessor"
+2025/01/18 09:57:26 Handling grpc Check request + service:"envoy.service.ext_proc.v3.ExternalProcessor"
+2025/01/18 09:57:27 Got stream:  -->  
+2025/01/18 09:57:27 pb.ProcessingRequest_RequestHeaders &{headers:{headers:{key:":method" raw_value:"POST"} headers:{key:":scheme" raw_value:"https"} headers:{key:":path" raw_value:"/google.pubsub.v1.Publisher/Publish"} headers:{key:":authority" raw_value:"pubsub.googleapis.com"} headers:{key:"content-type" raw_value:"application/grpc"} headers:{key:"user-agent" raw_value:"grpc-go/1.48.0"} headers:{key:"te" raw_value:"trailers"} headers:{key:"grpc-timeout" raw_value:"59862524u"} headers:{key:"authorization" raw_value:"Bearer ..."} headers:{key:"x-goog-user-project" raw_value:"core-eso"} headers:{key:"grpc-tags-bin" raw_value:"AAAFdG9waWMfcHJvamVjdHMvY29yZS1lc28vdG9waWNzL3RvcGljMQAGc3RhdHVzAk9L"} headers:{key:"x-goog-api-client" raw_value:"gl-go/1.23.4 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0"} headers:{key:"x-goog-request-params" raw_value:"topic=projects%2Fcore-eso%2Ftopics%2Ftopic1"} headers:{key:"grpc-trace-bin" raw_value:"AAA8h5xy+IO8ZIYns3mPYKn3Act1wtHTqVLuAgA"} headers:{key:"x-forwarded-proto" raw_value:"https"} headers:{key:"x-request-id" raw_value:"7cc52095-a169-4349-a258-2254cece0d32"}}} 
+2025/01/18 09:57:27 Got RequestHeaders.Attributes map[]
+
+2025/01/18 09:57:27 Got RequestHeaders.Headers headers:{key:":method" raw_value:"POST"} headers:{key:":scheme" raw_value:"https"} headers:{key:":path" raw_value:"/google.pubsub.v1.Publisher/Publish"} headers:{key:":authority" raw_value:"pubsub.googleapis.com"} headers:{key:"content-type" raw_value:"application/grpc"} headers:{key:"user-agent" raw_value:"grpc-go/1.48.0"} headers:{key:"te" raw_value:"trailers"} headers:{key:"grpc-timeout" raw_value:"59862524u"} headers:{key:"authorization" raw_value:"Bearer ya29...5"} headers:{key:"x-goog-user-project" raw_value:"core-eso"} headers:{key:"grpc-tags-bin" raw_value:"AAAFdG9waWMfcHJvamVjdHMvY29yZS1lc28vdG9waWNzL3RvcGljMQAGc3RhdHVzAk9L"} headers:{key:"x-goog-api-client" raw_value:"gl-go/1.23.4 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0"} headers:{key:"x-goog-request-params" raw_value:"topic=projects%2Fcore-eso%2Ftopics%2Ftopic1"} headers:{key:"grpc-trace-bin" raw_value:"AAA8h5xy+IO8ZIYns3mPYKn3Act1wtHTqVLuAgA"} headers:{key:"x-forwarded-proto" raw_value:"https"} headers:{key:"x-request-id" raw_value:"7cc52095-a169-4349-a258-2254cece0d32"}
+
+2025/01/18 09:57:27 Header :method POST
+2025/01/18 09:57:27    RequestBody: A
+projects/core-eso/topics/topic1
 
 foo number 0
 
 foo number 1
-2022/10/21 17:00:40 >>>>>>>>>>>>>>>> Got message for topic: projects/fabled-ray-104117/topics/topic1
+2025/01/18 09:57:27 >>>>>>>>>>>>>>>> Got message for topic: projects/core-eso/topics/topic1
 Decode PubsubMessage Data ---->  foo number 0
 Decode PubsubMessage Data ---->  foo number 1
-2022/10/21 17:00:40 pb.ProcessingRequest_ResponseHeaders &{headers:{headers:{key:":status"  value:"200"}  headers:{key:"content-disposition"  value:"attachment"}  headers:{key:"content-type"  value:"application/grpc"}  headers:{key:"date"  value:"Fri, 21 Oct 2022 21:00:40 GMT"}  headers:{key:"alt-svc"  value:"h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\""}  headers:{key:"x-envoy-upstream-service-time"  value:"149"}}} 
-2022/10/21 17:00:40 pb.ProcessingRequest_ResponseBody &{body:"\x00\x00\x00\x00$\n\x106016065317030900\n\x106016065317030901"  end_of_stream:true} 
-2022/10/21 17:00:40    ResponseBody: $
-6016065317030900
-6016065317030901
+
 
 ```
 
@@ -90,16 +97,8 @@ Decode PubsubMessage Data ---->  foo number 1
 ### Envoy Logs
 
 ```log
-[2022-10-21 17:00:40.611][2202332][debug][filter] [source/extensions/filters/listener/tls_inspector/tls_inspector.cc:116] tls:onServerName(), requestedServerName: pubsub.googleapis.com
-
-[2022-10-21 17:00:40.611][2202332][debug][filter] [source/extensions/filters/listener/http_inspector/http_inspector.cc:53] http inspector: new connection accepted
-
-[2022-10-21 17:00:40.611][2202332][debug][conn_handler] [source/server/active_tcp_listener.cc:142] [C2] new connection from 127.0.0.1:45076
-
-[2022-10-21 17:00:40.614][2202336][debug][filter] [source/extensions/filters/listener/http_inspector/http_inspector.cc:53] http inspector: new connection accepted
-
-[2022-10-21 17:00:40.752][2202333][debug][http] [source/common/http/conn_manager_impl.cc:299] [C6] new stream
-[2022-10-21 17:00:40.752][2202333][debug][http] [source/common/http/conn_manager_impl.cc:904] [C6][S8431130007026407378] request headers complete (end_stream=false):
+[2025-01-18 09:57:27.005][351270][debug][http] [source/common/http/conn_manager_impl.cc:393] [Tags: "ConnectionId":"3"] new stream
+[2025-01-18 09:57:27.005][351270][debug][http] [source/common/http/conn_manager_impl.cc:1160] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] request headers complete (end_stream=false):
 ':method', 'POST'
 ':scheme', 'https'
 ':path', '/google.pubsub.v1.Publisher/Publish'
@@ -107,17 +106,79 @@ Decode PubsubMessage Data ---->  foo number 1
 'content-type', 'application/grpc'
 'user-agent', 'grpc-go/1.48.0'
 'te', 'trailers'
-'grpc-timeout', '59870023u'
+'grpc-timeout', '59862524u'
 'authorization', 'Bearer ya29.redacted'
-'grpc-tags-bin', 'AAAGc3RhdHVzAk9LAAV0b3BpYyhwcm9qZWN0cy9mYWJsZWQtcmF5LTEwNDExNy90b3BpY3MvdG9waWMx'
-'x-goog-api-client', 'gl-go/1.19.0 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0'
-'x-goog-request-params', 'topic=projects%2Ffabled-ray-104117%2Ftopics%2Ftopic1'
-'grpc-trace-bin', 'AADYLLj/P24k5IPyxF69BSUsAYk6sKAoqXpiAgA'
+'x-goog-user-project', 'core-eso'
+'grpc-tags-bin', 'AAAFdG9waWMfcHJvamVjdHMvY29yZS1lc28vdG9waWNzL3RvcGljMQAGc3RhdHVzAk9L'
+'x-goog-api-client', 'gl-go/1.23.4 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0'
+'x-goog-request-params', 'topic=projects%2Fcore-eso%2Ftopics%2Ftopic1'
+'grpc-trace-bin', 'AAA8h5xy+IO8ZIYns3mPYKn3Act1wtHTqVLuAgA'
 
-[2022-10-21 17:00:40.753][2202333][debug][connection] [./source/common/network/connection_impl.h:89] [C6] current connecting state: false
-[2022-10-21 17:00:40.753][2202333][debug][ext_proc] [source/extensions/filters/http/ext_proc/ext_proc.cc:90] Opening gRPC stream to external processor
-[2022-10-21 17:00:40.753][2202333][debug][router] [source/common/router/router.cc:467] [C0][S2946864793608285876] cluster 'ext_proc_cluster' match for URL '/envoy.service.ext_proc.v3.ExternalProcessor/Process'
-[2022-10-21 17:00:40.753][2202333][debug][router] [source/common/router/router.cc:670] [C0][S2946864793608285876] router decoding headers:
+
+[2025-01-18 09:57:27.005][351270][debug][misc] [source/extensions/filters/http/proto_message_extraction/extractor_impl.cc:46] Extracted fields: fields {
+  key: "@type"
+  value {
+    string_value: "type.googleapis.com/google.pubsub.v1.PublishRequest"
+  }
+}
+fields {
+  key: "topic"
+  value {
+    string_value: "projects/core-eso/topics/topic1"
+  }
+}
+
+[2025-01-18 09:57:27.005][351270][debug][filter] [source/extensions/filters/http/proto_message_extraction/filter.cc:389] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] Injected request dynamic metadata `envoy.filters.http.proto_message_extraction` with `fields {
+  key: "requests"
+  value {
+    struct_value {
+      fields {
+        key: "first"
+        value {
+          struct_value {
+            fields {
+              key: "@type"
+              value {
+                string_value: "type.googleapis.com/google.pubsub.v1.PublishRequest"
+              }
+            }
+            fields {
+              key: "topic"
+              value {
+                string_value: "projects/core-eso/topics/topic1"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`
+
+
+[2025-01-18 09:57:27.006][351270][debug][misc] [source/extensions/filters/http/grpc_field_extraction/extractor_impl.cc:47] extracted the following resource values from the topic field: list_value {
+  values {
+    string_value: "projects/core-eso/topics/topic1"
+  }
+}
+
+[2025-01-18 09:57:27.006][351270][debug][filter] [source/extensions/filters/http/grpc_field_extraction/filter.cc:221] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] injected dynamic metadata `envoy.filters.http.grpc_field_extraction` with `fields {
+  key: "topic"
+  value {
+    list_value {
+      values {
+        string_value: "projects/core-eso/topics/topic1"
+      }
+    }
+  }
+}
+`
+[2025-01-18 09:57:27.006][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:149] converted back len(raw_message)=65, len(output_message)=70
+[2025-01-18 09:57:27.006][351270][debug][filter] [source/extensions/filters/http/grpc_field_extraction/filter.cc:195] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] decodeData: convert back data size=70
+[2025-01-18 09:57:27.006][351270][debug][ext_proc] [source/extensions/filters/http/ext_proc/ext_proc.cc:340] Opening gRPC stream to external processor
+[2025-01-18 09:57:27.006][351270][debug][router] [source/common/router/router.cc:527] [Tags: "ConnectionId":"0","StreamId":"14222310877270232499"] cluster 'ext_proc_cluster' match for URL '/envoy.service.ext_proc.v3.ExternalProcessor/Process'
+[2025-01-18 09:57:27.007][351270][debug][router] [source/common/router/router.cc:756] [Tags: "ConnectionId":"0","StreamId":"14222310877270232499"] router decoding headers:
 ':method', 'POST'
 ':path', '/envoy.service.ext_proc.v3.ExternalProcessor/Process'
 ':authority', 'ext_proc_cluster'
@@ -125,35 +186,13 @@ Decode PubsubMessage Data ---->  foo number 1
 'te', 'trailers'
 'content-type', 'application/grpc'
 'x-envoy-internal', 'true'
-'x-forwarded-for', '192.168.1.178'
+'x-forwarded-for', '192.168.1.160'
 
-[2022-10-21 17:00:40.753][2202333][debug][pool] [source/common/http/conn_pool_base.cc:78] queueing stream due to no available connections (ready=0 busy=0 connecting=0)
-[2022-10-21 17:00:40.753][2202333][debug][pool] [source/common/conn_pool/conn_pool_base.cc:268] trying to create new connection
-[2022-10-21 17:00:40.753][2202333][debug][pool] [source/common/conn_pool/conn_pool_base.cc:145] creating a new connection (connecting=0)
-[2022-10-21 17:00:40.753][2202333][debug][http2] [source/common/http/http2/codec_impl.cc:1783] [C10] updating connection-level initial window size to 268435456
-[2022-10-21 17:00:40.753][2202333][debug][connection] [./source/common/network/connection_impl.h:89] [C10] current connecting state: true
-[2022-10-21 17:00:40.753][2202333][debug][client] [source/common/http/codec_client.cc:57] [C10] connecting
-[2022-10-21 17:00:40.753][2202333][debug][connection] [source/common/network/connection_impl.cc:912] [C10] connecting to 127.0.0.1:18080
-[2022-10-21 17:00:40.754][2202333][debug][connection] [source/common/network/connection_impl.cc:931] [C10] connection in progress
-[2022-10-21 17:00:40.754][2202333][debug][ext_proc] [source/extensions/filters/http/ext_proc/ext_proc.cc:141] Sending headers message
-[2022-10-21 17:00:40.754][2202333][debug][http] [source/common/http/filter_manager.cc:841] [C6][S8431130007026407378] request end stream
-[2022-10-21 17:00:40.754][2202333][debug][connection] [source/common/network/connection_impl.cc:683] [C10] connected
-[2022-10-21 17:00:40.754][2202333][debug][client] [source/common/http/codec_client.cc:89] [C10] connected
-[2022-10-21 17:00:40.754][2202333][debug][pool] [source/common/conn_pool/conn_pool_base.cc:305] [C10] attaching to next stream
-[2022-10-21 17:00:40.754][2202333][debug][pool] [source/common/conn_pool/conn_pool_base.cc:177] [C10] creating stream
-[2022-10-21 17:00:40.754][2202333][debug][router] [source/common/router/upstream_request.cc:422] [C0][S2946864793608285876] pool ready
-[2022-10-21 17:00:40.756][2202333][debug][router] [source/common/router/router.cc:1351] [C0][S2946864793608285876] upstream headers complete: end_stream=false
-[2022-10-21 17:00:40.756][2202333][debug][http] [source/common/http/async_client_impl.cc:101] async http request response headers (end_stream=false):
-':status', '200'
-'content-type', 'application/grpc'
 
-[2022-10-21 17:00:40.757][2202333][debug][forward_proxy] [source/extensions/common/dynamic_forward_proxy/dns_cache_impl.cc:88] thread local lookup for host 'pubsub.googleapis.com'
-[2022-10-21 17:00:40.825][2202325][debug][forward_proxy] [source/extensions/common/dynamic_forward_proxy/dns_cache_impl.cc:307] main thread resolve complete for host 'pubsub.googleapis.com': [142.251.163.95:0, 172.253.62.95:0, 172.253.122.95:0, 172.253.115.95:0, 142.250.31.95:0, 172.253.63.95:0, 142.251.16.95:0]
-[2022-10-21 17:00:40.825][2202325][debug][forward_proxy] [source/extensions/common/dynamic_forward_proxy/dns_cache_impl.cc:374] host 'pubsub.googleapis.com' address has changed from <empty> to 142.251.163.95:443
-
-[2022-10-21 17:00:40.825][2202325][debug][upstream] [source/extensions/clusters/dynamic_forward_proxy/cluster.cc:112] Adding host info for pubsub.googleapis.com
-[2022-10-21 17:00:40.826][2202333][debug][router] [source/common/router/router.cc:467] [C6][S8431130007026407378] cluster 'dynamic_forward_proxy_cluster' match for URL '/google.pubsub.v1.Publisher/Publish'
-[2022-10-21 17:00:40.826][2202333][debug][router] [source/common/router/router.cc:670] [C6][S8431130007026407378] router decoding headers:
+[2025-01-18 09:57:27.023][351244][debug][forward_proxy] [source/extensions/common/dynamic_forward_proxy/dns_cache_impl.cc:490] DNS refresh rate reset for host 'pubsub.googleapis.com:443', refresh rate 285000 ms
+[2025-01-18 09:57:27.024][351270][debug][forward_proxy] [source/extensions/filters/http/dynamic_forward_proxy/proxy_filter.cc:416] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] load DNS cache complete, continuing after adding resolved host: pubsub.googleapis.com
+[2025-01-18 09:57:27.024][351270][debug][router] [source/common/router/router.cc:527] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] cluster 'dynamic_forward_proxy_cluster' match for URL '/google.pubsub.v1.Publisher/Publish'
+[2025-01-18 09:57:27.024][351270][debug][router] [source/common/router/router.cc:756] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] router decoding headers:
 ':method', 'POST'
 ':scheme', 'https'
 ':path', '/google.pubsub.v1.Publisher/Publish'
@@ -161,30 +200,107 @@ Decode PubsubMessage Data ---->  foo number 1
 'content-type', 'application/grpc'
 'user-agent', 'grpc-go/1.48.0'
 'te', 'trailers'
-'grpc-timeout', '59870023u'
-'authorization', 'Bearer ya29.redacted'
-'grpc-tags-bin', 'AAAGc3RhdHVzAk9LAAV0b3BpYyhwcm9qZWN0cy9mYWJsZWQtcmF5LTEwNDExNy90b3BpY3MvdG9waWMx'
-'x-goog-api-client', 'gl-go/1.19.0 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0'
-'x-goog-request-params', 'topic=projects%2Ffabled-ray-104117%2Ftopics%2Ftopic1'
-'grpc-trace-bin', 'AADYLLj/P24k5IPyxF69BSUsAYk6sKAoqXpiAgA'
+'grpc-timeout', '59862524u'
+'authorization', 'Bearer ya29.'
+'x-goog-user-project', 'core-eso'
+'grpc-tags-bin', 'AAAFdG9waWMfcHJvamVjdHMvY29yZS1lc28vdG9waWNzL3RvcGljMQAGc3RhdHVzAk9L'
+'x-goog-api-client', 'gl-go/1.23.4 gccl/1.25.1 gapic/1.25.1 gax/2.4.0 grpc/1.48.0'
+'x-goog-request-params', 'topic=projects%2Fcore-eso%2Ftopics%2Ftopic1'
+'grpc-trace-bin', 'AAA8h5xy+IO8ZIYns3mPYKn3Act1wtHTqVLuAgA'
 'x-forwarded-proto', 'https'
-'x-request-id', '778b7a17-772d-42c9-96e8-e2b85d9dd325'
+'x-request-id', '7cc52095-a169-4349-a258-2254cece0d32'
 'x-envoy-expected-rq-timeout-ms', '15000'
 
-[2022-10-21 17:00:40.979][2202333][debug][http] [source/common/http/conn_manager_impl.cc:1516] [C6][S8431130007026407378] encoding headers via codec (end_stream=false):
+
+[2025-01-18 09:57:27.139][351270][debug][filter] [source/extensions/filters/http/proto_message_extraction/filter.cc:277] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] encodeData: data size=43 end_stream=false
+
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:154] 43 + 0
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:32] Checking buffer limits: actual 43 > limit 268435456?
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:154] 43 + 0
+[2025-01-18 09:57:27.139][351270][debug][misc] [./source/extensions/filters/http/grpc_field_extraction/message_converter/stream_message.h:22] owned len(owned_bytes_)=38
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:62] len(parsing_buffer_)=0
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:154] 0 + 38
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:32] Checking buffer limits: actual 38 > limit 268435456?
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:154] 0 + 38
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter_utility.cc:26] Need more data for gRPC frame header parsing. Current size=0
+[2025-01-18 09:57:27.139][351270][info][misc] [source/extensions/filters/http/grpc_field_extraction/message_converter/message_converter.cc:49] expecting more data for gRPC message parsing
+[2025-01-18 09:57:27.139][351270][debug][misc] [source/extensions/filters/http/proto_message_extraction/extractor_impl.cc:46] Extracted fields: fields {
+  key: "@type"
+  value {
+    string_value: "type.googleapis.com/google.pubsub.v1.PublishResponse"
+  }
+}
+
+[2025-01-18 09:57:27.139][351270][debug][filter] [source/extensions/filters/http/proto_message_extraction/filter.cc:423] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] Injected response dynamic metadata `envoy.filters.http.proto_message_extraction` with `fields {
+  key: "responses"
+  value {
+    struct_value {
+      fields {
+        key: "first"
+        value {
+          struct_value {
+            fields {
+              key: "@type"
+              value {
+                string_value: "type.googleapis.com/google.pubsub.v1.PublishResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`
+
+[2025-01-18 09:57:27.139][351270][debug][http] [source/common/http/conn_manager_impl.cc:1849] [Tags: "ConnectionId":"3","StreamId":"15637459028729789041"] encoding headers via codec (end_stream=false):
 ':status', '200'
 'content-disposition', 'attachment'
 'content-type', 'application/grpc'
-'date', 'Fri, 21 Oct 2022 21:00:40 GMT'
-'alt-svc', 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"'
-'x-envoy-upstream-service-time', '149'
+'date', 'Sat, 18 Jan 2025 14:57:27 GMT'
+'alt-svc', 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'
+'x-envoy-upstream-service-time', '114'
 'server', 'envoy'
-
-[2022-10-21 17:00:40.979][2202333][debug][http] [source/common/http/conn_manager_impl.cc:1533] [C6][S8431130007026407378] encoding trailers via codec:
-'grpc-status', '0'
-'content-disposition', 'attachment'
-
-[2022-10-21 17:00:40.979][2202333][debug][http2] [source/common/http/http2/codec_impl.cc:1470] [C6] stream 1 closed: 0
-
 ```
 
+---
+
+### Filter extraction limits
+
+For  `envoy.filters.http.proto_message_extraction` and `envoy.filters.http.grpc_field_extraction`
+
+you'll need the protodescriptors.  You can either use the protodescritor in this repo or to generate the protodescriptors by hand:
+
+
+```bash
+git clone https://github.com/googleapis/api-common-protos /tmp/api-common-protos
+git clone https://github.com/googleapis/googleapis.git
+
+protoc -I /tmp/api-common-protos -I.    --descriptor_set_out=google/pubsub/v1/pubsub.proto.pb    --include_imports      google/pubsub/v1/pubsub.proto
+```
+
+Note that the pubsub publish message format;
+
+```proto
+
+message PublishRequest {
+  string topic = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = { type: "pubsub.googleapis.com/Topic" }
+  ];
+  repeated PubsubMessage messages = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PubsubMessage {
+
+  bytes data = 1 [(google.api.field_behavior) = OPTIONAL];
+  map<string, string> attributes = 2 [(google.api.field_behavior) = OPTIONAL];
+  string message_id = 3;
+  google.protobuf.Timestamp publish_time = 4;
+  string ordering_key = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+```
+
+a limitation of the automatic extractor is that its limited: eg, if you try to extract `message.data` field within the envoy config, you'll see:
+
+   `couldn't init extractor for method `google.pubsub.v1.Publisher.Publish`: leaf node 'data' must be numerical/string or timestamp type`
